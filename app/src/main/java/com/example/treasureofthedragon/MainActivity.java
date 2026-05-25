@@ -7,7 +7,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.app.Dialog;
-import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,13 +30,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton boardButtons[][];
     private GameManager manager;
     private Dialog dialog;
-
-    private Button endGame;
-
+    private Button endGameBtn;
     private ArrayList<TextView> names;
     private ArrayList<TextView> scores;
-
-    private ArrayList<EditText> editTexts;
+    private ArrayList<EditText> namesEditText;
     private int numOfPlayers;
 
 
@@ -46,38 +42,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
         dialog = new Dialog(this);
-
         names = new ArrayList<>();
         scores = new ArrayList<>();
-        editTexts = new ArrayList<>();
+        namesEditText = new ArrayList<>();
+        boardButtons = new ImageButton[7][7];
+        endGameBtn = findViewById(R.id.button);
+        endGameBtn.setOnClickListener(this);
 
         openNamesDialog();
 
-        boardButtons = new ImageButton[7][7];
-
-        endGame = findViewById(R.id.button);
-        endGame.setOnClickListener(this);
-
-
-
-
         for (int i = 0; i < 3; i ++)
         {
-            String idStr1 = "header" + i;
-            int resId1 = getResources().getIdentifier(idStr1, "id", getPackageName());
-            names.add(findViewById(resId1));
+            String idStrHeader = "header" + i;
+            int resIdHeader = getResources().getIdentifier(idStrHeader, "id", getPackageName());
+            names.add(findViewById(resIdHeader));
 
-            String idStr2 = "score" + i;
-            int resId2 = getResources().getIdentifier(idStr2, "id", getPackageName());
-            scores.add(findViewById(resId2));
+            String idStrScore = "score" + i;
+            int resIdScore = getResources().getIdentifier(idStrScore, "id", getPackageName());
+            scores.add(findViewById(resIdScore));
         }
-
-
-
-
     }
 
     @Override
@@ -87,11 +71,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         {
             for(int j = 0; j < 7; j++)
             {
-                if (boardButtons[i][j].getId() == v.getId() && manager.getBoardTiles()[i][j].isSelected == false)
+                if (boardButtons[i][j].getId() == v.getId() && !manager.getBoardTiles()[i][j].isSelected())
                 {
-
                     if (manager.getFirstTile().getType() == -2) // first
-
                     {
                         manager.setFirstTile(manager.getBoardTiles()[i][j]);
                     }
@@ -102,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (manager.getBoardTiles()[i][j].getType() == 1)//another dragon
                         {
                             manager.getBoardTiles()[i][j].setSelected(true);
-                            setImage(manager.getBoardTiles()[i][j].getType(),i,j);
+                            showImage(manager.getBoardTiles()[i][j].getType(),i,j);
                             manager.addTileToList(manager.getBoardTiles()[i][j]);
                         }
                         else
@@ -110,8 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             manager.getBoardTiles()[i][j].setSelected(true);
                             Toast.makeText(this, "" + manager.getBoardTiles()[i][j].getType(), Toast.LENGTH_SHORT).show();
                             manager.cutTurn();
-                            //runLosingThread(i,j);
-
+                            //runLosingThread(i,j); TODO-> remove
                             showLosingReason(i,j);
 
                         }
@@ -120,30 +101,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     {
                         if (manager.getBoardTiles()[i][j].getType() == 1 || manager.getBoardTiles()[i][j].getType() == 0)
                         {
+
                             manager.getBoardTiles()[i][j].setSelected(true);
-                           Toast.makeText(this, "" + manager.getBoardTiles()[i][j].getType(), Toast.LENGTH_SHORT).show();
-                           manager.cutTurn();
-
+                            Toast.makeText(this, "" + manager.getBoardTiles()[i][j].getType(), Toast.LENGTH_SHORT).show();
+                            manager.cutTurn();
                             showLosingReason(i,j);
-
-
                         }
                         else
                         {
                             manager.getBoardTiles()[i][j].setSelected(true);
-                            setImage(manager.getBoardTiles()[i][j].getType(),i,j);
+                            showImage(manager.getBoardTiles()[i][j].getType(),i,j);
                             manager.addTileToList(manager.getBoardTiles()[i][j]);
                         }
                     }
-
                 }
 
             }
         }
 
-        if (endGame.getId() == v.getId())
+        if (endGameBtn.getId() == v.getId())
         {
-            endTurn();
+            collectCards();
         }
 
         if(isGameEnded())
@@ -153,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    public void setImage(int num,int i, int j)
+    public void showImage(int num, int i, int j)
     {
 
         /*if (num == 0)
@@ -207,16 +185,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    public void endTurn()
+    public void collectCards()
     {
         if(manager.getFirstTile().getType() != 1)
-            manager.endTurn(false);
+            manager.collectCards(false);
         else
-            manager.endTurn(true);
+            manager.collectCards(true);
 
         updateInvisibles();
         updateTexts();
-
     }
 
     public void updateInvisibles()
@@ -251,27 +228,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     oa1.start();
 
                     }
-
-
-
-
-
-                    /*final ObjectAnimator oa1 = ObjectAnimator.ofFloat(boardButtons[i][j], "scaleX", 1f, 0f);
-                    final ObjectAnimator oa2 = ObjectAnimator.ofFloat(boardButtons[i][j], "scaleX", 0f, 1f);
-                    oa1.setInterpolator(new DecelerateInterpolator());
-                    oa2.setInterpolator(new AccelerateDecelerateInterpolator());
-                    ImageButton imageButton = boardButtons[i][j];
-                    oa1.addListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            imageButton.setImageResource(R.drawable.back);
-                            oa2.start();
-                        }
-                    });
-                    oa1.start();*/
                 }
-
             }
         }
     }
@@ -295,13 +252,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
-
-
     public void runLosingThread(int i, int j)
     {
 
-        setImage(manager.getBoardTiles()[i][j].getType(),i,j);
+        showImage(manager.getBoardTiles()[i][j].getType(),i,j);
 
 
         Thread thread = new Thread() {
@@ -333,7 +287,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void showLosingReason(int i, int j)
     {
         clickableAll(false);
-        setImage(manager.getBoardTiles()[i][j].getType(),i,j);
+        showImage(manager.getBoardTiles()[i][j].getType(),i,j);
         Animation animation = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.blink_anim);
         boardButtons[i][j].startAnimation(animation);
         final Handler handler = new Handler(Looper.getMainLooper());
@@ -436,31 +390,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         this.dialog.setContentView(R.layout.names_layout_dialog);
         this.dialog.getWindow().setBackgroundDrawable(new ColorDrawable(TRANSPARENT));
 
-        ImageButton imageButton = this.dialog.findViewById(R.id.close);
-        Button button = this.dialog.findViewById(R.id.button2);
+        ImageButton closeButton = this.dialog.findViewById(R.id.close);
+        Button continueButton = this.dialog.findViewById(R.id.continueBtn);
 
-
-        for (int i = 0; i < 3; i ++)
-        {
-            String idStr1 = "name" + i;
-            int resId1 = getResources().getIdentifier(idStr1, "id", getPackageName());
-            editTexts.add(dialog.findViewById(resId1));
+        for (int i = 0; i < 3; i ++) {
+            String idStr = "name" + i;
+            int resId = getResources().getIdentifier(idStr, "id", getPackageName());
+            namesEditText.add(dialog.findViewById(resId));
         }
-        imageButton.setOnClickListener(new View.OnClickListener() {
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
             }
         });
 
-        button.setOnClickListener(new View.OnClickListener() {
+        continueButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 boolean isLegal = true;
+
                 for (int i = 0; i < 3; i ++)
                 {
-                    if (editTexts.get(i).getText().toString().equals(""))
+                    if (namesEditText.get(i).getText().toString().equals(""))
                     {
                         if (i == 2)
                         {
@@ -484,7 +437,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             numOfPlayers = 3;
                         }
 
-                        names.get(i).setText(editTexts.get(i).getText().toString());
+                        names.get(i).setText(namesEditText.get(i).getText().toString());
                     }
                 }
                 if (isLegal)
@@ -496,9 +449,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
         dialog.show();
-
     }
 
     private void identifyBoard()

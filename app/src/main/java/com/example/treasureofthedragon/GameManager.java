@@ -1,9 +1,5 @@
 package com.example.treasureofthedragon;
 
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
-
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -147,8 +143,6 @@ public class GameManager {
             chests.add(tile);
             //Toast.makeText(appCompatActivity, "" + chests.size(), Toast.LENGTH_SHORT).show();
         }
-
-
     }
 
 
@@ -181,7 +175,7 @@ public class GameManager {
 
     }
 
-    public void endTurn(boolean isDragonTurn)
+    public void collectCards(boolean isDragonTurn)
     {
         int count = 0;
         if (isDragonTurn == false) {

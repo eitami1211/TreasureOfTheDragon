@@ -1,16 +1,22 @@
 package com.example.treasureofthedragon;
 
 public class Tile {
+    enum CardType{
+        REGULAR,
+        DRAGON,
+        SPIDER,
+        NONE
+    }
     private int type;
     private int row;
     private int col;
-    boolean isSelected;
+    private boolean isSelected;
 
     public Tile(int type, int row, int col) {
         this.type = type;
         this.row = row;
         this.col = col;
-        isSelected = false;
+        this.isSelected = false;
     }
 
     public int getType() {
